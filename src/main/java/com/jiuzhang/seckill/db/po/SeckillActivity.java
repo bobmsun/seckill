@@ -113,4 +113,10 @@ public class SeckillActivity {
     public void setLockStock(Long lockStock) {
         this.lockStock = lockStock;
     }
+
+    @Override
+    public String toString() {
+        return "id: " + id + ", name: " + name + ", commodity_id: " + commodityId + ", old_price: " + oldPrice +
+                ", seckill_price: " + seckillPrice + ", activity_status: " + activityStatus;
+    }
 }
