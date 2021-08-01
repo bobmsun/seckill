@@ -1,1 +1,1 @@
-# Seckill High-Availability & High-Currency Shoping Site
+# Seckill: a High-Availability & High-Currency Shopping Site
