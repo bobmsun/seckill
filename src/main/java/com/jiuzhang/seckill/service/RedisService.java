@@ -66,7 +66,7 @@ public class RedisService {
                 System.out.println("库存不足");
                 return false;
             }
-            System.out.println("恭喜，抢购成功");
+            System.out.println("恭喜，抢购成功 (from redis 扣减)");
             return true;
         } catch (Throwable throwable) {
             System.out.println("库存扣减失败: " + throwable.toString());
