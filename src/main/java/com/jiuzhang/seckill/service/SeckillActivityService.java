@@ -88,6 +88,8 @@ public class SeckillActivityService {
     public void payOrderProcess(String orderNo) {
         log.info("完成支付订单 订单号：" + orderNo);
         Order order = orderDao.queryOrder(orderNo);
+
+        // 之前是先 锁定库存；现在缴费成功后，扣减库存
         boolean deductStockResult = seckillActivityDao.deductStock(order.getSeckillActivityId());
 
         if (deductStockResult) {
