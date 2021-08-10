@@ -2,14 +2,18 @@ package com.jiuzhang.seckill.web;
 
 import com.jiuzhang.seckill.db.dao.SeckillActivityDao;
 import com.jiuzhang.seckill.db.dao.SeckillCommodityDao;
+import com.jiuzhang.seckill.db.po.Order;
 import com.jiuzhang.seckill.db.po.SeckillActivity;
 import com.jiuzhang.seckill.db.po.SeckillCommodity;
+import com.jiuzhang.seckill.service.SeckillActivityService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -17,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Controller         // 标示这个类是 controller
 public class SeckillActivityController {
 
@@ -26,6 +31,14 @@ public class SeckillActivityController {
     @Autowired
     private SeckillCommodityDao seckillCommodityDao;
 
+    @Autowired
+    private SeckillActivityService seckillActivityService;
+
+
+    /**
+     * 跳转 发布活动页面
+     * @return
+     */
     @RequestMapping("/addSeckillActivity")         // 标示在哪个路径来访问它
     public String addSeckillActivity() {
         return "add_activity";
@@ -69,6 +82,11 @@ public class SeckillActivityController {
         return "add_success";
     }
 
+    /**
+     * 查询秒杀活动的列表
+     * @param resultMap
+     * @return
+     */
     @RequestMapping("/seckills")
     public String activityList(
             Map<String, Object> resultMap
@@ -78,6 +96,12 @@ public class SeckillActivityController {
         return "seckill_activity";
     }
 
+    /**
+     * 秒杀商品详情
+     * @param resultMap
+     * @param seckillActivityId
+     * @return
+     */
     @RequestMapping("/item/{seckillActivityId}")             // 这里用了 path variable 路径变量
     public String itemPage(
             @PathVariable long seckillActivityId,
@@ -93,6 +117,39 @@ public class SeckillActivityController {
         resultMap.put("commodityName", seckillCommodity.getCommodityName());
         resultMap.put("commodityDesc", seckillCommodity.getCommodityDesc());
         return "seckill_item";
+    }
+
+    /**
+     * 处理抢购请求
+     * @param userId
+     * @param seckillActivityId
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/seckill/buy/{userId}/{seckillActivityId}")
+    public ModelAndView seckillCommodity(
+            @PathVariable long userId,
+            @PathVariable long seckillActivityId
+    ) {
+        boolean stockValidateResult = false;
+        ModelAndView modelAndView = new ModelAndView();       // 稍后要返回给浏览器的一个渲染界面
+
+        try {
+            stockValidateResult = seckillActivityService.seckillStockValidator(seckillActivityId);    // 去 redis 里边看
+            if (stockValidateResult) {
+                Order order = seckillActivityService.createOrder(seckillActivityId, userId);
+                modelAndView.addObject("resultInfo","秒杀成功，订单创建中，订单 ID：" + order.getOrderNo());
+                modelAndView.addObject("orderNo", order.getOrderNo());
+            } else {
+                modelAndView.addObject("resultInfo", "对不起，商品库存不足");
+            }
+        } catch (Exception exception) {
+            log.error("秒杀活动异常：", exception.toString());
+            modelAndView.addObject("resultInfo", "秒杀失败");
+        }
+
+        modelAndView.setViewName("seckill_result");
+        return modelAndView;
     }
 
 }
