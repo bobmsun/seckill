@@ -35,8 +35,8 @@ public class OrderConsumer implements RocketMQListener<MessageExt> {
         Order order = JSON.parseObject(message, Order.class);      // 解析，反序列化
         order.setCreateTime(new Date());
 
-        // 2. 扣减库存
-        boolean lockStockResult = seckillActivityDao.lockStock(order.getSeckillActivityId());
+        // 2. 锁定库存
+        boolean lockStockResult = seckillActivityDao.lockStock(order.getSeckillActivityId());       // lockStock 在 mapper 中的 sql 用到了数据库的乐观锁
         if (lockStockResult) {
             // 锁定成功
             // 1 = 已创建，等待付款
