@@ -10,7 +10,6 @@ import javax.annotation.Resource;
 import java.util.Collections;
 
 @Slf4j
-
 @Service
 public class RedisService {
 
