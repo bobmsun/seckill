@@ -140,11 +140,26 @@ public class SeckillActivityController {
         ModelAndView modelAndView = new ModelAndView();       // 稍后要返回给浏览器的一个渲染界面
 
         try {
+            /**
+             * 判断用品是否在已购买名单中
+             */
+//            if (redisService.inInLimitMember(seckillActivityId, userId)) {
+//                // 提示用户已经在购买名单中
+//                modelAndView.addObject("resultInfo", "对不起，您已经在购买名单中");
+//                modelAndView.setViewName("seckill_result");
+//                return modelAndView;
+//            }
+            /**
+             * 确认是否能够进行秒杀
+             */
             stockValidateResult = seckillActivityService.seckillStockValidator(seckillActivityId);    // 去 redis 里边看
             if (stockValidateResult) {
                 Order order = seckillActivityService.createOrder(seckillActivityId, userId);
                 modelAndView.addObject("resultInfo","秒杀成功，订单创建中，订单 ID：" + order.getOrderNo());
                 modelAndView.addObject("orderNo", order.getOrderNo());
+
+                // 本次秒杀成功后，就要把用户加到限购名单当中去，来表明 "用户买了"
+                // redisService.addLimitMember(seckillActivityId, userId);
             } else {
                 modelAndView.addObject("resultInfo", "对不起，商品库存不足");
             }

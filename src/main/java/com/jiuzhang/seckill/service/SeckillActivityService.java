@@ -87,6 +87,7 @@ public class SeckillActivityService {
      * @param orderNo
      */
     public void payOrderProcess(String orderNo) {
+        // 实际中，这里应该调用支付宝、微信的接口；这里就不做了，假设直接支付成功
         log.info("完成支付订单 订单号：" + orderNo);
         Order order = orderDao.queryOrder(orderNo);
 
