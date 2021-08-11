@@ -168,10 +168,10 @@ public class SeckillActivityController {
     ) {
         log.info("订单查询，订单号：" + orderNo);
         Order order = orderDao.queryOrder(orderNo);
-        ModelAndView modelAndView = new ModelAndView();
+        ModelAndView modelAndView = new ModelAndView();            // ModelAndView 是渲染页面用的，Model 数据 和 页面视图（view）的转化
 
         if (order != null) {
-            modelAndView.setViewName("order");
+            modelAndView.setViewName("order");                     // .setViewName()  是指定我们要跳转到哪个页面里去
             modelAndView.addObject("order", order);
             SeckillActivity seckillActivity = seckillActivityDao.querySeckillActivityById(order.getSeckillActivityId());
             modelAndView.addObject("seckillActivity", seckillActivity);

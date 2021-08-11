@@ -13,7 +13,7 @@ public class RocketMQService {
     private RocketMQTemplate template;
 
     public void sendMessage(String topic, String body) throws Exception {
-        Message message = new Message(topic, body.getBytes());
+        Message message = new Message(topic, body.getBytes());          // .getBytes() 转化为字节流
         template.getProducer().send(message);
     }
 

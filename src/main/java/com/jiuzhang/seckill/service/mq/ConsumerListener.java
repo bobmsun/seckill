@@ -23,3 +23,5 @@ public class ConsumerListener implements RocketMQListener<MessageExt>{
     }
 
 }
+
+// 这个类是测试用的，不是实现业务逻辑用的
