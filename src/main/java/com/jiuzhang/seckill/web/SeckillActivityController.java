@@ -1,13 +1,16 @@
 package com.jiuzhang.seckill.web;
 
+import com.alibaba.fastjson.JSON;
 import com.jiuzhang.seckill.db.dao.OrderDao;
 import com.jiuzhang.seckill.db.dao.SeckillActivityDao;
 import com.jiuzhang.seckill.db.dao.SeckillCommodityDao;
 import com.jiuzhang.seckill.db.po.Order;
 import com.jiuzhang.seckill.db.po.SeckillActivity;
 import com.jiuzhang.seckill.db.po.SeckillCommodity;
+import com.jiuzhang.seckill.service.RedisService;
 import com.jiuzhang.seckill.service.SeckillActivityService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,6 +41,9 @@ public class SeckillActivityController {
 
     @Resource
     private OrderDao orderDao;
+
+    @Resource
+    RedisService redisService;
 
 
     /**
@@ -107,13 +113,33 @@ public class SeckillActivityController {
      * @param seckillActivityId
      * @return
      */
-    @RequestMapping("/item/{seckillActivityId}")             // 这里用了 path variable 路径变量
+    @RequestMapping("/item/{seckillActivityId}")      // 这里用了 path variable 路径变量       // 7.3缓存预热实现（第6章）中 是 /seckill/detail/{seckillActivity}
     public String itemPage(
             @PathVariable long seckillActivityId,
             Map<String, Object> resultMap
     ) {
-        SeckillActivity seckillActivity = seckillActivityDao.querySeckillActivityById(seckillActivityId);
-        SeckillCommodity seckillCommodity = seckillCommodityDao.querySeckillCommodityById(seckillActivity.getCommodityId());
+        // （以下为 7.3缓存预热实现 (第六章) 视频中的）以下为缓存预热 的 逻辑 （提前把 秒杀活动信息 和 秒杀商品信息 缓存到 redis 中，查询时，先查缓存，如果缓存有，就不到数据库中查了）
+        SeckillActivity seckillActivity;
+        SeckillCommodity seckillCommodity;
+
+        String seckillActivityInfo = redisService.getValue("seckillActivity:" + seckillActivityId);
+        if (StringUtils.isNotEmpty(seckillActivityInfo)) {
+            log.info("redis缓存数据:" + seckillActivityInfo);        // 从 redis 缓存中读出数据，打开页面的速度会快一点
+            seckillActivity = JSON.parseObject(seckillActivityInfo, SeckillActivity.class);
+        } else {
+            seckillActivity = seckillActivityDao.querySeckillActivityById(seckillActivityId);
+        }
+
+        String seckillCommodityInfo = redisService.getValue("seckillCommodity:" + seckillActivity.getCommodityId());
+        if (StringUtils.isNotEmpty(seckillCommodityInfo)) {
+            log.info("redis缓存数据:" + seckillCommodityInfo);
+            seckillCommodity = JSON.parseObject(seckillActivityInfo, SeckillCommodity.class);
+        } else {
+            seckillCommodity = seckillCommodityDao.querySeckillCommodityById(seckillActivity.getCommodityId());
+        }
+
+//        SeckillActivity seckillActivity = seckillActivityDao.querySeckillActivityById(seckillActivityId);
+//        SeckillCommodity seckillCommodity = seckillCommodityDao.querySeckillCommodityById(seckillActivity.getCommodityId());
         resultMap.put("seckillActivity", seckillActivity);
         resultMap.put("seckillCommodity", seckillCommodity);
         resultMap.put("seckillPrice", seckillActivity.getSeckillPrice());

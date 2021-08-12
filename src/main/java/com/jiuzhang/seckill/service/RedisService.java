@@ -117,4 +117,17 @@ public class RedisService {
         jedisClient.srem("seckillActivity_users:" + activityId, String.valueOf(userId));
     }
 
+    /**
+     * 设置值
+     * @param key
+     * @param value
+     * @return
+     */
+    // public void setValue(String key, Long value) {
+    public RedisService setValue(String key, String value) {
+        Jedis client = jedisPool.getResource();
+        client.set(key, value);
+        client.close();
+        return this;
+    }
 }
