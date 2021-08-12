@@ -3,8 +3,10 @@ package com.jiuzhang.seckill.service;
 import com.alibaba.fastjson.JSON;
 import com.jiuzhang.seckill.db.dao.OrderDao;
 import com.jiuzhang.seckill.db.dao.SeckillActivityDao;
+import com.jiuzhang.seckill.db.dao.SeckillCommodityDao;
 import com.jiuzhang.seckill.db.po.Order;
 import com.jiuzhang.seckill.db.po.SeckillActivity;
+import com.jiuzhang.seckill.db.po.SeckillCommodity;
 import com.jiuzhang.seckill.service.mq.RocketMQService;
 import com.jiuzhang.seckill.util.SnowFlake;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +32,9 @@ public class SeckillActivityService {
 
     @Resource
     private OrderDao orderDao;
+
+    @Resource
+    private SeckillCommodityDao seckillCommodityDao;
 
 
     /**
@@ -102,5 +107,18 @@ public class SeckillActivityService {
             order.setOrderStatus(2);
             orderDao.updateOrder(order);
         }
+    }
+
+    /**
+     * 将秒杀详情相关信息导入 redis     (秒杀开始前两天，可以进行预热，通过执行这个函数，将数据写到 redis 中去)
+     * @param seckillActivityId
+     */
+    public void pushSeckillInfoToRedis(long seckillActivityId) {
+        SeckillActivity seckillActivity = seckillActivityDao.querySeckillActivityById(seckillActivityId);
+        service.setValue("seckillActivity:" + seckillActivityId, JSON.toJSONString(seckillActivity));
+
+        // 缓存活动信息后，还有缓存商品信息
+        SeckillCommodity seckillCommodity = seckillCommodityDao.querySeckillCommodityById(seckillActivity.getCommodityId());
+        service.setValue("seckillCommodity:" + seckillActivity.getCommodityId(), JSON.toJSONString(seckillCommodity));
     }
 }

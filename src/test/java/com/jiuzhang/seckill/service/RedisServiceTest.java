@@ -13,6 +13,10 @@ class RedisServiceTest {
     @Resource
     private RedisService service;
 
+    @Resource
+    private SeckillActivityService seckillActivityService;
+
+
     @Test
     void setValue() {
         String value = service.setValue("test:1", 100L).getValue("test:1");
@@ -32,5 +36,18 @@ class RedisServiceTest {
         assertTrue(result);
         String value = service.getValue("test:1");
         assertEquals(new Long(value), 99L);
+    }
+
+    @Test
+    public void pushSeckillInfoToRedistest() {
+        seckillActivityService.pushSeckillInfoToRedis(19);
+    }
+
+    @Test
+    public void getSeckillInfoFromRedis() {
+        String seclillInfo = service.getValue("seckillActivity:" + 19);
+        System.out.println(seclillInfo);
+        String seckillCommodity = service.getValue("seckillCommodity:" + 1001);
+        System.out.println(seckillCommodity);
     }
 }
